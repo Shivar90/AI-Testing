@@ -1,0 +1,33 @@
+Test ID,Description,Pre-conditions,Steps,Expected Result,Priority
+TC_FUNC_01,Verify login page loads,Browser available,Open https://app.vwo.com/#/login,Login page displayed,High
+TC_FUNC_02,Verify valid login,Valid credentials available,"Enter email, Enter password, Click Sign In",User logged in,High
+TC_FUNC_03,Verify invalid password,Registered email exists,"Enter valid email, Enter invalid password, Click Sign In",Login fails,High
+TC_FUNC_04,Verify invalid email,User exists,"Enter invalid email, Enter password, Click Sign In",Not specified,Medium
+TC_FUNC_05,Verify empty fields submission,On login page,"Leave fields empty, Click Sign In",Not specified,Medium
+TC_FUNC_06,Verify forgot password navigation,On login page,Click Forgot Password,Reset page displayed,High
+TC_FUNC_07,Verify password reset flow,Registered email,"Enter email, Submit",Reset initiated,High
+TC_FUNC_08,Verify Google login,Google account available,"Click Google login, Authenticate",User logged in,High
+TC_FUNC_09,Verify SSO login,SSO configured,"Click SSO login, Enter email",Redirect to IdP,High
+TC_FUNC_10,Verify passkey login,Supported device,"Select passkey login, Authenticate",User logged in,High
+TC_FUNC_11,Verify login redirection,Valid credentials,Login successfully,Not specified,High
+TC_SEC_01,Verify SQL injection protection,On login page,"Enter SQL payload, Submit",Not specified,High
+TC_SEC_02,Verify XSS protection,On login page,"Enter script input, Submit",Not specified,High
+TC_SEC_03,Verify password masking,On login page,Enter password,Password masked,High
+TC_SEC_04,Verify HTTPS enforcement,URL accessible,Observe URL,Secure connection used,High
+TC_SEC_05,Verify brute force handling,Valid account exists,Attempt multiple invalid logins,Not specified,High
+TC_SEC_06,Verify unauthorized access restriction,No login,Access restricted URL,Not specified,High
+TC_SEC_07,Verify session fixation protection,Logged in user,"Capture session, Reuse session",Not specified,Medium
+TC_SEC_08,Verify input validation boundaries,On login page,"Enter long inputs, Submit",Not specified,Medium
+TC_PERF_01,Verify login response time,System available,Perform login,Not specified,High
+TC_PERF_02,Verify concurrent login load,Load tool ready,Simulate multiple users,Not specified,High
+TC_PERF_03,Verify stress behavior,Load tool ready,Apply heavy load,Not specified,High
+TC_PERF_04,Verify login under slow network,Network throttled,Perform login,Not specified,Medium
+TC_PERF_05,Verify third-party login latency,External login available,Perform external login,Not specified,Medium
+TC_ACC_01,Verify keyboard navigation,On login page,Use TAB key,Not specified,Medium
+TC_ACC_02,Verify screen reader support,Screen reader enabled,Navigate fields,Not specified,Medium
+TC_ACC_03,Verify form labels,On login page,Inspect fields,Labels present,Medium
+TC_EDGE_01,Verify whitespace input,On login page,"Enter spaces, Submit",Not specified,Medium
+TC_EDGE_02,Verify special characters input,On login page,"Enter special characters, Submit",Not specified,Medium
+TC_EDGE_03,Verify case sensitivity,Valid account,"Enter uppercase email, Submit",Not specified,Medium
+TC_EDGE_04,Verify browser refresh behavior,Logged in user,Refresh page,Not specified,Medium
+TC_EDGE_05,Verify multiple tab sessions,Logged in user,Open multiple tabs,Not specified,Medium

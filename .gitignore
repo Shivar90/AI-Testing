@@ -22,3 +22,8 @@ venv/
 # OS junk
 .DS_Store
 Thumbs.db
+
+#command code
+.commandcode/
+.playwright-mcp/
+
