@@ -1,0 +1,24 @@
+# Command Code tool state — not project code
+.commandcode/
+
+# Playwright MCP verification artifacts
+.playwright-mcp/
+
+# Python / Pytest
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+
+# OS junk
+.DS_Store
+Thumbs.db
