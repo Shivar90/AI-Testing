@@ -13,45 +13,42 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 **Preconditions:** User has a registered VWO account with valid email and password.
 **Test Steps:**
 1. Navigate to app.vwo.com login page.
-2. Enter a valid email address in the email field.
-3. Enter the correct password in the password field.
-4. Click the login/submit button.
-**Expected Result:** User is authenticated and redirected to the VWO core platform dashboard.
-**Traceability:** PRD — "Primary Authentication"; "VWO Core Platform: Seamless transition to main dashboard after successful authentication"
+2. Enter a valid email address in the "email" field.
+3. Enter the correct password in the "password" field.
+4. Click the "submit" button.
+**Expected Result:** User is authenticated and redirected to https://app.vwo.com/#/dashboard (VWO core platform dashboard).
+**Traceability:** PRD — "Primary Authentication"; "VWO Core Platform: Seamless transition to main dashboard after successful authentication"; User Input — exact dashboard URL: https://app.vwo.com/#/dashboard; User Input — exact UI labels: email, password, submit
 
 ### TC-AUTH-02: Login with Invalid Password
 **Requirement:** PRD — "Error Handling: Clear, actionable error messages for failed authentication attempts"
 **Preconditions:** User has a registered VWO account.
 **Test Steps:**
 1. Navigate to app.vwo.com login page.
-2. Enter a valid email address.
-3. Enter an incorrect password.
-4. Click the login/submit button.
-**Expected Result:** Authentication fails. An error message is displayed. The user is not redirected to the dashboard.
-**Traceability:** PRD — "Error Handling: Clear, actionable error messages for failed authentication attempts"
-**Note:** *Insufficient information to determine* — the exact error message text is not specified in the PRD.
+2. Enter a valid email address in the "email" field.
+3. Enter an incorrect password in the "password" field.
+4. Click the "submit" button.
+**Expected Result:** Authentication fails. The error message "Your email, password, IP address or location did not match" is displayed. The user is not redirected to the dashboard.
+**Traceability:** PRD — "Error Handling: Clear, actionable error messages for failed authentication attempts"; User Input — exact error message text: "Your email, password, IP address or location did not match"
 
 ### TC-AUTH-03: Login with Unregistered Email
 **Requirement:** PRD — "Error Handling: Clear, actionable error messages for failed authentication attempts"
 **Test Steps:**
 1. Navigate to app.vwo.com login page.
-2. Enter an email address that is not registered with VWO.
-3. Enter any password.
-4. Click the login/submit button.
-**Expected Result:** Authentication fails. An error message is displayed. The user is not redirected to the dashboard.
-**Traceability:** PRD — "Error Handling: Clear, actionable error messages for failed authentication attempts"
-**Note:** *Insufficient information to determine* — the exact error message text is not specified in the PRD.
+2. Enter an email address that is not registered with VWO in the "email" field.
+3. Enter any password in the "password" field.
+4. Click the "submit" button.
+**Expected Result:** Authentication fails. The error message "Your email, password, IP address or location did not match" is displayed. The user is not redirected to the dashboard.
+**Traceability:** PRD — "Error Handling: Clear, actionable error messages for failed authentication attempts"; User Input — exact error message text: "Your email, password, IP address or location did not match"
 
 ### TC-AUTH-04: Session Management — Configurable Timeout
 **Requirement:** PRD — "Session Management: Secure session handling with configurable timeout periods"
 **Preconditions:** User is logged in.
 **Test Steps:**
 1. Log in to app.vwo.com with valid credentials.
-2. Remain idle for the configured session timeout period.
+2. Remain idle for 60 minutes (exact session timeout duration per user input).
 3. Attempt to interact with the application after the timeout period.
 **Expected Result:** The session expires. The user is redirected to the login page or shown a session-expired message.
-**Traceability:** PRD — "Session Management: Secure session handling with configurable timeout periods"
-**Note:** *Insufficient information to determine* — the specific timeout duration and the exact post-expiry behavior (redirect vs. modal) are not specified in the PRD.
+**Traceability:** PRD — "Session Management: Secure session handling with configurable timeout periods"; User Input — exact session timeout duration: 60 (minutes)
 
 ### TC-AUTH-05: Remember Me — Persistent Login Session
 **Requirement:** PRD — "Remember Me Functionality: Checkbox option for persistent login sessions"
@@ -60,11 +57,11 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 1. Navigate to app.vwo.com login page.
 2. Enter valid email and password.
 3. Check the "Remember Me" checkbox.
-4. Click the login/submit button.
+4. Click the "submit" button.
 5. Close the browser.
 6. Reopen the browser and navigate to app.vwo.com.
 **Expected Result:** The user is still logged in (persistent session maintained).
-**Traceability:** PRD — "Remember Me Functionality: Checkbox option for persistent login sessions"
+**Traceability:** PRD — "Remember Me Functionality: Checkbox option for persistent login sessions"; User Input — exact UI labels: email, password, submit
 **Note:** *Insufficient information to determine* — the exact persistence duration (e.g., 30 days, 90 days) is not specified in the PRD.
 
 ### TC-AUTH-06: Remember Me — Not Checked (Session Expires on Browser Close)
@@ -74,24 +71,24 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 1. Navigate to app.vwo.com login page.
 2. Enter valid email and password.
 3. Leave the "Remember Me" checkbox unchecked.
-4. Click the login/submit button.
+4. Click the "submit" button.
 5. Close the browser.
 6. Reopen the browser and navigate to app.vwo.com.
 **Expected Result:** The user is logged out. The login page is displayed.
-**Traceability:** PRD — "Remember Me Functionality: Checkbox option for persistent login sessions"
+**Traceability:** PRD — "Remember Me Functionality: Checkbox option for persistent login sessions"; User Input — exact UI labels: email, password, submit
 
 ### TC-AUTH-07: Multi-Factor Authentication (Optional 2FA)
 **Requirement:** PRD — "Multi-Factor Authentication: Optional 2FA support for enhanced security"
 **Preconditions:** User has 2FA enabled on their VWO account.
 **Test Steps:**
 1. Navigate to app.vwo.com login page.
-2. Enter valid email and password.
-3. Click the login/submit button.
+2. Enter valid email and password in the "email" and "password" fields.
+3. Click the "submit" button.
 4. When prompted, enter the 2FA code from the authenticator app or SMS.
 5. Confirm the 2FA code.
-**Expected Result:** User is authenticated and redirected to the VWO core platform dashboard.
-**Traceability:** PRD — "Multi-Factor Authentication: Optional 2FA support for enhanced security"
-**Note:** *Insufficient information to determine* — the specific 2FA delivery methods (e.g., TOTP, SMS, hardware key) and the exact 2FA prompt UI are not specified in the PRD.
+**Expected Result:** User is authenticated and redirected to https://app.vwo.com/#/dashboard (VWO core platform dashboard).
+**Traceability:** PRD — "Multi-Factor Authentication: Optional 2FA support for enhanced security"; User Input — exact dashboard URL: https://app.vwo.com/#/dashboard; User Input — exact UI labels: email, password, submit
+**Note:** *Insufficient information to determine* — the specific 2FA delivery methods (e.g., TOTP, SMS, hardware key) are not specified by the user (User Input — exact MFA method: NO). The exact 2FA prompt UI is not specified in the PRD.
 
 ### TC-AUTH-08: Single Sign-On (SSO) — Enterprise Integration
 **Requirement:** PRD — "Single Sign-On (SSO): Enterprise SSO integration capabilities for organizational accounts"; "Enterprise SSO: Support for SAML, OAuth, and other enterprise authentication protocols"
@@ -102,8 +99,8 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 3. Redirect to the organization's identity provider (IdP).
 4. Authenticate with the IdP.
 5. Return to the VWO application.
-**Expected Result:** User is authenticated via SSO and redirected to the VWO core platform dashboard.
-**Traceability:** PRD — "Single Sign-On (SSO): Enterprise SSO integration capabilities for organizational accounts"; "Enterprise SSO: Support for SAML, OAuth, and other enterprise authentication protocols"
+**Expected Result:** User is authenticated via SSO and redirected to https://app.vwo.com/#/dashboard (VWO core platform dashboard).
+**Traceability:** PRD — "Single Sign-On (SSO): Enterprise SSO integration capabilities for organizational accounts"; "Enterprise SSO: Support for SAML, OAuth, and other enterprise authentication protocols"; User Input — exact dashboard URL: https://app.vwo.com/#/dashboard
 **Note:** *Insufficient information to determine* — the specific SSO protocols supported in the UI, the exact SSO login button label, and the IdP configuration flow are not specified in the PRD.
 
 ---
@@ -141,11 +138,11 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 **Requirement:** PRD — "Password Requirements: Enforced security standards for password complexity"
 **Preconditions:** User is in the password reset or registration flow.
 **Test Steps:**
-1. Enter a password that does not meet complexity requirements.
+1. Enter a password that does not meet complexity requirements (e.g., less than 8 characters, no alphanumeric mix).
 2. Attempt to submit the form.
 **Expected Result:** The form is not submitted. Feedback is displayed indicating which password requirements are not met.
-**Traceability:** PRD — "Password Requirements: Enforced security standards for password complexity"
-**Note:** *Insufficient information to determine* — the specific complexity requirements (e.g., minimum length, required character types) are not specified in the PRD.
+**Traceability:** PRD — "Password Requirements: Enforced security standards for password complexity"; User Input — exact password policy rules: 8 characters, alphanumeric
+**Note:** *Insufficient information to determine* — the exact feedback message text for non-compliant passwords is not specified in the PRD.
 
 ---
 
@@ -156,15 +153,15 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 **Test Steps:**
 1. Navigate to app.vwo.com login page.
 2. Click the "Forgot Password" link.
-3. Enter the registered email address.
-4. Submit the reset request.
+3. Enter the registered email address in the "email" field.
+4. Submit the reset request by clicking the "submit" button.
 5. Check the email inbox for a password reset email.
 6. Click the password reset link in the email.
-7. Enter a new password.
+7. Enter a new password (must be 8 characters, alphanumeric per user input).
 8. Confirm the new password.
 9. Submit the reset form.
 **Expected Result:** A secure token is generated and sent via email. The user can reset their password using the token. The new password is applied and the user can log in with the new password.
-**Traceability:** PRD — "Forgot Password Flow: Streamlined password reset process with secure token generation"; "Password Recovery: Multiple recovery options including email-based reset"
+**Traceability:** PRD — "Forgot Password Flow: Streamlined password reset process with secure token generation"; "Password Recovery: Multiple recovery options including email-based reset"; User Input — exact password policy rules: 8 characters, alphanumeric; User Input — exact UI labels: email, password, submit
 **Note:** *Insufficient information to determine* — the token expiration time, the exact email content, and the number of recovery options beyond email are not specified in the PRD.
 
 ### TC-PWD-02: Password Recovery — Email-Based Reset
@@ -312,10 +309,10 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 **Requirement:** PRD — "Rate Limiting: Protection against brute force attacks through request throttling"
 **Test Steps:**
 1. Navigate to app.vwo.com login page.
-2. Submit multiple failed login attempts in rapid succession (e.g., 10+ attempts with incorrect passwords).
-**Expected Result:** After a certain number of failed attempts, further login attempts are throttled or blocked temporarily.
-**Traceability:** PRD — "Rate Limiting: Protection against brute force attacks through request throttling"
-**Note:** *Insufficient information to determine* — the specific threshold (number of attempts before throttling) and the lockout duration are not specified in the PRD.
+2. Submit failed login attempts with incorrect passwords.
+3. Continue submitting failed attempts until the rate limit threshold is reached.
+**Expected Result:** After 3 failed login attempts (exact rate limiting threshold per user input), further login attempts are throttled or blocked temporarily. The error message "Your email, password, IP address or location did not match" is displayed for subsequent attempts.
+**Traceability:** PRD — "Rate Limiting: Protection against brute force attacks through request throttling"; User Input — exact rate limiting threshold: 3; User Input — exact error message text: "Your email, password, IP address or location did not match"
 
 ---
 
@@ -666,14 +663,10 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 - Test cases cover functional, security, performance, accessibility, and integration aspects.
 
 **Missing / Unknown Information:**
-- Exact error message text for authentication failures
-- Specific session timeout duration
-- Specific password complexity requirements
-- Specific 2FA delivery methods
+- Specific 2FA delivery methods (User Input — exact MFA method: NO, not specified)
 - Specific SSO protocols in the UI
 - Exact theme toggle mechanism
 - Specific hashing algorithm
-- Specific rate limiting thresholds
 - Specific social login providers beyond Google and Microsoft
 - Exact registration form fields
 - Specific onboarding steps
@@ -681,7 +674,25 @@ Test cases derived **exclusively** from PRD_VWO.pdf. Every assertion is traceabl
 - Specific analytics tool/platform
 - Specific support integration mechanism
 - Specific context preserved for returning users
+- Exact color values and fonts for brand consistency
+- Specific high contrast mode activation method
+- Exact post-expiry behavior (redirect vs. modal) for session timeout
+- Exact persistence duration for Remember Me
+- Token expiration time for password reset
+- Exact email content for password reset
+- Number of recovery options beyond email
+- Specific feedback message text for non-compliant passwords
+- Specific type of loading indicator
+
+**User-Provided Exact Details (incorporated into test cases):**
+- Exact UI labels: email, password, submit buttons
+- Exact password policy rules: 8 characters, alphanumeric
+- Exact error message text: "Your email, password, IP address or location did not match"
+- Exact rate limiting threshold: 3 failed attempts
+- Exact MFA method: NO (not specified)
+- Exact session timeout duration: 60 (minutes)
+- Exact dashboard URL: https://app.vwo.com/#/dashboard
 
 **Generated Output:** 59 test cases covering all PRD requirements.
 
-**Self-Validation Check:** No test case asserts behavior or features not present in the PRD. All assertions are traceable to PRD requirements. Where the PRD is silent on specific details, test cases are marked with "Insufficient information to determine" rather than inventing details.
+**Self-Validation Check:** No test case asserts behavior or features not present in the PRD or user-provided input. All assertions are traceable to PRD requirements or user input. Where the PRD is silent on specific details, test cases are marked with "Insufficient information to determine" rather than inventing details. User-provided exact details (UI labels, password policy, error messages, rate limiting threshold, session timeout, dashboard URL) are explicitly labeled as "User Input" in traceability sections.
