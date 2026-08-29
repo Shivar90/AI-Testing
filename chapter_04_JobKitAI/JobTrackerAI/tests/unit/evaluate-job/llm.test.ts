@@ -24,9 +24,10 @@ describe('parseEvaluationResult', () => {
       '- Docker',
       '- Kubernetes',
     ].join('\n');
-    const result = parseEvaluationResult(raw);
+    const result = parseEvaluationResult(raw, 'groq');
     expect(result.strengths.map((s) => s.label)).toEqual(['Python', 'React']);
     expect(result.gaps.map((g) => g.label)).toEqual(['Docker', 'Kubernetes']);
+    expect(result.basis).toBe('groq');
   });
 
   it('parses JSON output', () => {
@@ -34,19 +35,21 @@ describe('parseEvaluationResult', () => {
       strengths: ['Python', 'React'],
       gaps: ['Docker'],
     });
-    const result = parseEvaluationResult(raw);
+    const result = parseEvaluationResult(raw, 'groq');
     expect(result.strengths.map((s) => s.keyword)).toEqual(['python', 'react']);
     expect(result.gaps.map((g) => g.keyword)).toEqual(['docker']);
+    expect(result.basis).toBe('groq');
   });
 
   it('handles empty sections', () => {
-    const result = parseEvaluationResult('## Strengths\n\n## Gaps\n');
+    const result = parseEvaluationResult('## Strengths\n\n## Gaps\n', 'ollama');
     expect(result.strengths).toHaveLength(0);
     expect(result.gaps).toHaveLength(0);
+    expect(result.basis).toBe('ollama');
   });
 
   it('returns empty result for unrelated output', () => {
-    const result = parseEvaluationResult('I cannot evaluate this.');
+    const result = parseEvaluationResult('I cannot evaluate this.', 'ollama');
     expect(result.strengths).toHaveLength(0);
     expect(result.gaps).toHaveLength(0);
   });
@@ -54,10 +57,13 @@ describe('parseEvaluationResult', () => {
   it('normalises keywords to lowercase but keeps labels', () => {
     const result = parseEvaluationResult(
       '## Strengths\n- TypeScript\n\n## Gaps\n- AWS\n',
+      'groq',
     );
     expect(result.strengths[0].keyword).toBe('typescript');
     expect(result.strengths[0].label).toBe('TypeScript');
     expect(result.gaps[0].keyword).toBe('aws');
+    expect(result.gaps[0].label).toBe('AWS');
+    expect(result.basis).toBe('groq');
   });
 });
 

@@ -59,6 +59,11 @@ describe('evaluateJob', () => {
     expect(result.strengths.map((s) => s.keyword)).toEqual(
       expect.arrayContaining(['python', 'react', 'aws', 'docker', 'jest']),
     );
+    // Dictionary labels mirror the seed-list keyword exactly (no casing to
+    // preserve — the seed list is lowercase).
+    expect(result.strengths.map((s) => s.label)).toEqual(
+      result.strengths.map((s) => s.keyword),
+    );
     expect(result.gaps).toHaveLength(0);
   });
 
@@ -69,12 +74,29 @@ describe('evaluateJob', () => {
       expect.arrayContaining(['react', 'aws', 'docker', 'jest']),
     );
     expect(result.strengths.map((s) => s.keyword)).toEqual(['python']);
+    expect(result.gaps.map((g) => g.label)).toEqual(
+      result.gaps.map((g) => g.keyword),
+    );
   });
 
   it('is deterministic for the same inputs', () => {
     const a = evaluateJob(jd, 'Python React AWS');
     const b = evaluateJob(jd, 'Python React AWS');
     expect(a).toEqual(b);
+  });
+
+  it('resolves every JD keyword into exactly one of strengths or gaps', () => {
+    const resume = 'I know Python and Docker.';
+    const result = evaluateJob(jd, resume);
+    const jdKeywords = extractKeywords(jd);
+    const resolved = new Set([
+      ...result.strengths.map((s) => s.keyword),
+      ...result.gaps.map((g) => g.keyword),
+    ]);
+    // The dictionary engine fully resolves the JD keyword set, so the
+    // unresolvedCount of 0 is truthful, not a placeholder.
+    expect(resolved).toEqual(jdKeywords);
+    expect(result.unresolvedCount).toBe(0);
   });
 
   it('returns empty strengths and gaps when JD has no known keywords', () => {
@@ -99,6 +121,7 @@ describe('evaluateWithEngine', () => {
     );
     expect(result.strengths.map((s) => s.keyword)).toEqual(['python']);
     expect(result.gaps.map((g) => g.keyword)).toEqual(['docker']);
+    expect(result.basis).toBe('dictionary');
   });
 
   it('throws a clear error for Groq without an API key', async () => {

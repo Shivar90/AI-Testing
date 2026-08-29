@@ -5,7 +5,7 @@
 // This module is a thin fetch wrapper (no new dependencies) plus a parser
 // that converts the LLM's answer back into the app's EvaluationResult.
 
-import type { EvaluationResult, RequirementMatch } from '../types';
+import type { EngineKind, EvaluationResult, RequirementMatch } from '../types';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -126,8 +126,16 @@ export function buildEvaluationPrompt(input: {
   ];
 }
 
-/** Parse an LLM answer into a plain EvaluationResult. */
-export function parseEvaluationResult(raw: string): EvaluationResult {
+/**
+ * Parse an LLM answer into a plain EvaluationResult. The LLM engines do not
+ * compute unresolved items, so unresolvedCount is always 0 — the required
+ * `basis` param records which engine produced the result so consumers can
+ * distinguish "nothing unresolved" from "not computed".
+ */
+export function parseEvaluationResult(
+  raw: string,
+  basis: EngineKind,
+): EvaluationResult {
   const text = raw.trim();
 
   // Prefer JSON: {"strengths": [...], "gaps": [...]}
@@ -143,6 +151,7 @@ export function parseEvaluationResult(raw: string): EvaluationResult {
           strengths: toMatches(parsed.strengths),
           gaps: toMatches(parsed.gaps),
           unresolvedCount: 0,
+          basis,
         };
       }
     } catch {
@@ -153,7 +162,7 @@ export function parseEvaluationResult(raw: string): EvaluationResult {
   // Markdown: ## Strengths / ## Gaps bullet lists.
   const strengths = parseSection(text, 'Strengths');
   const gaps = parseSection(text, 'Gaps');
-  return { strengths, gaps, unresolvedCount: 0 };
+  return { strengths, gaps, unresolvedCount: 0, basis };
 }
 
 function toMatches(value: unknown): RequirementMatch[] {

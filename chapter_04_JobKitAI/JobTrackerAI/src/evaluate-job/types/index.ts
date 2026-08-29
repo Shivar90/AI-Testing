@@ -19,14 +19,24 @@ export interface RequirementMatch {
   label: string;
 }
 
+/** Which analysis engine produced an EvaluationResult. */
+export type EvaluationBasis = EngineKind;
+
 /** Result of evaluating a resume against a job description. */
 export interface EvaluationResult {
   /** Skills/requirements present in both resume and JD. */
   strengths: RequirementMatch[];
   /** JD requirements missing from the resume. */
   gaps: RequirementMatch[];
-  /** Count of requirements that could not be assessed. */
+  /**
+   * Count of requirements that could not be assessed. The dictionary engine
+   * resolves every JD keyword (each lands in strengths or gaps), so its zero
+   * is truthful; the LLM engines do not compute this, so their zero means
+   * "not computed" — distinguish via `basis`.
+   */
   unresolvedCount: number;
+  /** Engine that produced this result. */
+  basis: EvaluationBasis;
 }
 
 /** Which analysis engine the Evaluate page uses. */

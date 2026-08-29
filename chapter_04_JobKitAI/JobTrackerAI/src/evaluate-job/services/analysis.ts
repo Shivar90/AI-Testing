@@ -13,6 +13,7 @@ import {
   parseEvaluationResult,
 } from './llm';
 import type {
+  EngineKind,
   EvaluationResult,
   EvaluationSettings,
   RequirementMatch,
@@ -35,7 +36,8 @@ export function extractKeywords(text: string): Set<string> {
   const found = new Set<string>();
   for (const keyword of COMMON_SKILL_KEYWORDS) {
     // Match on word boundaries (padded spaces) so "react" doesn't match
-    // "reactor", and "ai" doesn't match "said".
+    // "reactor", and "ai" doesn't match "said". The keyword itself is the
+    // canonical display form — the seed list is lowercase.
     if (normalized.includes(` ${keyword} `)) {
       found.add(keyword);
     }
@@ -44,12 +46,10 @@ export function extractKeywords(text: string): Set<string> {
 }
 
 function toMatch(keyword: string): RequirementMatch {
-  // Label keeps the canonical casing from the seed list.
-  const seed = COMMON_SKILL_KEYWORDS.find((k) => k === keyword);
-  return {
-    keyword,
-    label: seed ?? keyword,
-  };
+  // The keyword already comes from COMMON_SKILL_KEYWORDS with canonical casing
+  // (the list is lowercase, so label === keyword). Building the object directly
+  // avoids an O(n) scan per match that could only ever return its own input.
+  return { keyword, label: keyword };
 }
 
 export function evaluateJob(
@@ -72,10 +72,16 @@ export function evaluateJob(
     }
   }
 
+  // The dictionary engine resolves every JD keyword — each lands in either
+  // strengths or gaps — so unresolvedCount 0 is truthful, not a placeholder.
+  // basis records which engine produced this result (per the review's
+  // provenance request) so consumers can tell "nothing unresolved" apart from
+  // "this engine does not compute unresolved items" (the LLM engines).
   return {
     strengths,
     gaps,
     unresolvedCount: 0,
+    basis: 'dictionary',
   };
 }
 
@@ -105,6 +111,7 @@ export async function evaluateWithEngine(
         // Server-side proxy holds the key (Vercel env var). The browser sends
         // no API key.
         return runLlmEvaluation({
+          engine: 'groq',
           url: '/api/groq',
           apiKey: 'proxy', // sent as Bearer but ignored by the proxy
           model: settings.groqModel,
@@ -117,6 +124,7 @@ export async function evaluateWithEngine(
         );
       }
       return runLlmEvaluation({
+        engine: 'groq',
         url: GROQ_URL,
         apiKey: settings.groqApiKey,
         model: settings.groqModel,
@@ -126,6 +134,7 @@ export async function evaluateWithEngine(
 
     case 'ollama': {
       return runLlmEvaluation({
+        engine: 'ollama',
         url: settings.ollamaUrl,
         apiKey: 'ollama', // required by the schema but ignored by Ollama
         model: settings.ollamaModel,
@@ -139,6 +148,7 @@ export async function evaluateWithEngine(
 }
 
 function runLlmEvaluation(options: {
+  engine: EngineKind;
   url: string;
   apiKey: string;
   model: string;
@@ -149,7 +159,7 @@ function runLlmEvaluation(options: {
     apiKey: options.apiKey,
     model: options.model,
     messages: buildEvaluationPrompt(options.input),
-  }).then(({ content }) => parseEvaluationResult(content));
+  }).then(({ content }) => parseEvaluationResult(content, options.engine));
 }
 
 function assertNever(value: never): never {

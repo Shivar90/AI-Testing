@@ -25,3 +25,5 @@ pnpm-debug.log*
 
 # Reports (build/test output)
 reports/*
+.vercel
+.env*

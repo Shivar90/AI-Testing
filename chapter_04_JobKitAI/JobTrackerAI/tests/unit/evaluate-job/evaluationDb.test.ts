@@ -17,7 +17,12 @@ function makeEvaluation(overrides: Partial<StoredEvaluation> = {}): StoredEvalua
     designation: 'Engineer',
     jobDescription: 'JD',
     resumeText: 'Resume',
-    result: { strengths: [{ keyword: 'python', label: 'Python' }], gaps: [], unresolvedCount: 0 },
+    result: {
+      strengths: [{ keyword: 'python', label: 'Python' }],
+      gaps: [],
+      unresolvedCount: 0,
+      basis: 'groq',
+    },
     createdAt: 1000,
     ...overrides,
   };
@@ -41,5 +46,6 @@ describe('evaluationDb (shared DB)', () => {
     await putEvaluation(makeEvaluation({ id: 'e1' }));
     const [stored] = await getAllEvaluations();
     expect(stored.result.strengths[0].keyword).toBe('python');
+    expect(stored.result.basis).toBe('groq');
   });
 });
