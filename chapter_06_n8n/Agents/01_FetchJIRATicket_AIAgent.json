@@ -1,0 +1,217 @@
+{
+  "name": "01_FetchJIRATicket_AIAgent",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "# Trigger",
+        "height": 416,
+        "width": 304
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "faffaabf-de54-41e5-8d07-a3f1ddb430a3",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        128,
+        16
+      ],
+      "id": "264db169-7190-4440-952d-aca561e6744b",
+      "name": "Schedule Trigger",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        432,
+        64
+      ],
+      "id": "0e402667-80c1-4cbe-bd28-ece6d588cc72",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "content": "# Action",
+        "height": 448,
+        "width": 432,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        352,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "c44259a5-0ba3-4694-beb5-483b1d29aa9a",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# Result",
+        "height": 416,
+        "width": 304,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        816,
+        0
+      ],
+      "typeVersion": 1,
+      "id": "658d69f5-cd74-434e-89c9-ebf4fc44ea45",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        304
+      ],
+      "id": "df05ad8d-3522-4c5e-aff9-ce382a52b589",
+      "name": "Brain",
+      "credentials": {
+        "openAiApi": {
+          "id": "YARu18mmdzAXkJvB",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        320
+      ],
+      "id": "73672061-7440-45ca-aaa9-171a0f0af6cb",
+      "name": "Memory"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "issueKey": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Issue_Key', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.jiraTool",
+      "typeVersion": 1,
+      "position": [
+        576,
+        288
+      ],
+      "id": "823ffa1c-1f24-4193-a9ba-e236f885bef9",
+      "name": "Get an issue in Jira Software",
+      "credentials": {
+        "jiraSoftwareCloudApi": {
+          "id": "mDGpcTs2yBwGQmeh",
+          "name": "Jira SW Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        112,
+        208
+      ],
+      "id": "f57d77c7-ce25-4a4b-b576-138182a54e01",
+      "name": "When chat message received",
+      "webhookId": "97f5cf11-95ad-4bc2-af2d-b674477ce5fe"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Brain": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an issue in Jira Software": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "88d9cd0b-e0d2-493d-be6f-87d9b70d03f4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7d9413c31f351bf099a0a33ed1850cc7b9b4e131869b9ac4e25915608ca44b28"
+  },
+  "nodeGroups": [],
+  "id": "o5G64K3nx1s76g9q",
+  "tags": []
+}
