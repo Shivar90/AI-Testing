@@ -1,0 +1,275 @@
+{
+  "project": {
+    "key": "EA",
+    "name": "Enterprise Application",
+    "projectTemplateKey": "com.pyxis.greenhopper.jira:gh-simplified-scrum-classic"
+  },
+  "sprints": [
+    { "name": "EA Sprint 1", "goal": "Authentication & Access — Login/Registration APIs", "state": "active", "startDate": "2026-08-31", "endDate": "2026-09-13" },
+    { "name": "EA Sprint 2", "goal": "Experimentation & Testing Engine", "state": "future", "startDate": "2026-09-14", "endDate": "2026-09-27" },
+    { "name": "EA Sprint 3", "goal": "Behavioral Insights & Personalization", "state": "future", "startDate": "2026-09-28", "endDate": "2026-10-11" },
+    { "name": "EA Sprint 4", "goal": "Enterprise Readiness — Security, Compliance & Quality", "state": "future", "startDate": "2026-10-12", "endDate": "2026-10-25" }
+  ],
+  "epics": [
+    {
+      "key": "EA-1",
+      "summary": "Authentication & Access — Login and Registration APIs",
+      "description": "Epic covering the VWO login API and registration/signup API requirements from the API documentation and HLR. Foundation for all other features; dependency-first.",
+      "labels": ["login", "api", "auth", "enterprise-app"]
+    },
+    {
+      "key": "EA-2",
+      "summary": "Experimentation & Testing Engine",
+      "description": "Epic covering VWO Testing: A/B, Split URL and Multivariate testing, SmartStats Bayesian engine, visual/code editors, goals, audience targeting, and real-time reporting. Derived from PRD section 4.1 and FR1-FR3, FR5-FR6.",
+      "labels": ["testing", "experimentation", "prd", "enterprise-app"]
+    },
+    {
+      "key": "EA-3",
+      "summary": "Behavioral Insights & Personalization",
+      "description": "Epic covering VWO Insights (heatmaps, session recordings, funnels, surveys) and Personalize (segmentation, real-time content), plus integration connectors. Derived from PRD sections 4.2, 4.3, 4.5 and FR4, FR7-FR8.",
+      "labels": ["insights", "personalization", "prd", "enterprise-app"]
+    },
+    {
+      "key": "EA-4",
+      "summary": "Enterprise Readiness — Security, Compliance, Integrations & Quality",
+      "description": "Epic covering non-functional requirements: performance (2s editing), security (2FA, RBAC, activity logs), data privacy (GDPR/CCPA), reliability (99.9% uptime), collaboration/workflow, and cross-device QA. Derived from PRD section 7 and FR9.",
+      "labels": ["security", "compliance", "quality", "enterprise-app"]
+    }
+  ],
+  "stories": [
+    {
+      "summary": "As a user, I want to log in to the VWO dashboard with valid credentials so that I can access my account and dashboard",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "points": 5,
+      "labels": ["login", "api", "sprint1"],
+      "description": "Source: App VWO Login API doc + HLR (Login).\n\nPOST https://app.vwo.com/login with {\"username\", \"password\", \"remember\", \"recaptcha_response_field\"}. Content-Type: application/json. No auth header.\n\nAcceptance Criteria:\n- POST /login with valid username+password returns 200/2xx\n- Response includes user object: id, name, email, accountId\n- Response includes account/policy flags (isActive, policy.ruleset)\n- Response includes currentAccount.planType and productsEnabled\n- User is redirected/able to access the dashboard\n- Content-Type: application/json accepted; malformed body returns 4xx"
+    },
+    {
+      "summary": "As a user, I want to see a clear error when logging in with invalid credentials so that I know my login failed",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "points": 3,
+      "labels": ["login", "api", "error-handling", "sprint1"],
+      "description": "Source: App VWO Login API doc + HLR (Login).\n\nInvalid email/password must return an error (no dashboard access).\n\nAcceptance Criteria:\n- POST /login with wrong password returns 401/error status\n- POST /login with unknown email returns error\n- Error response contains a meaningful message/code\n- No session/token issued on failure\n- Empty/missing username or password fields rejected with 4xx"
+    },
+    {
+      "summary": "As an API consumer, I want the login response schema validated so that integrations receive consistent, documented data",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "points": 5,
+      "labels": ["login", "api", "validation", "sprint1"],
+      "description": "Source: App VWO Login API doc (Response - Validation).\n\nResponse JSON contract includes: id, name, email, accountId, isDemoAccount, shouldSeeOnboarding, isPasswordSet, isAccountVerified, policy {id, name, ruleset}, accounts[], currentAccount {id, timezone, isTrial, daysRemaining, isExpired, productsEnabled, planType, accountStatus, dataLocation}, isActive, createdOn, lastLogin, imageUrl, appVersion, twoFactorAuthenticationMethod, isSamlEnabled, proxyToken, playerToken.\n\nAcceptance Criteria:\n- Response matches documented JSON schema field-for-field\n- policy.ruleset exposes canBrowse, canDesign, canPublish, isAdmin, isOwner booleans\n- accounts[] present with id, name, isMainAccount, isAgencyAccount, isLinkedAccount\n- currentAccount includes planType, productsEnabled (testing/deploy/data360), daysRemaining\n- proxyToken and playerToken present on successful login\n- Schema documented and versioned for API consumers"
+    },
+    {
+      "summary": "As a user, I want session and token handling (proxyToken, playerToken, cookies) so that I stay authenticated across API calls",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "points": 5,
+      "labels": ["login", "api", "session", "token", "sprint1"],
+      "description": "Source: App VWO Login API doc (proxyToken, playerToken) + HLR verification dimensions (Auth, Cookie, Token).\n\nAcceptance Criteria:\n- Successful login returns proxyToken and playerToken\n- Tokens are usable for subsequent authenticated API requests\n- Session cookie (if any) is set and honored\n- Remember flag persists session when true\n- Token expiry/refresh behavior defined and handled\n- Tokens are not logged or exposed in plaintext logs"
+    },
+    {
+      "summary": "As a user, I want to register/sign up so that I can create a new VWO account",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "points": 5,
+      "labels": ["registration", "signup", "api", "sprint1"],
+      "description": "Source: HLR (Registration section).\n\nRegistration API is the second API family in the HLR. Verification dimensions: URL, Payload, HTTP Method, Status, Request body, Response body, Header, Auth, Cookie, Token.\n\nAcceptance Criteria:\n- Registration endpoint is documented with URL and HTTP method\n- Valid registration payload creates a new account\n- Response body returns account/user details on success\n- Duplicate/registered email returns an error\n- Invalid/missing fields rejected with 4xx\n- Header, Auth, Cookie, and Token behavior verified and documented"
+    },
+    {
+      "summary": "As a QA engineer, I want an API test matrix for login and registration covering headers, auth, cookies, and tokens so that API quality is verified",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "Medium",
+      "points": 3,
+      "labels": ["api-testing", "qa", "test-matrix", "sprint1"],
+      "description": "Source: HLR verification dimensions (URL, Payload, HTTP Method, Status, Request body, Response body, Header, Auth, Cookie, Token).\n\nAcceptance Criteria:\n- Test matrix exists for Login API covering all verification dimensions\n- Test matrix exists for Registration API covering all verification dimensions\n- Each row maps to a test case with expected status\n- Header variations (Content-Type, User-Agent, Referer) covered\n- Auth=none for login confirmed; cookie/token behavior asserted\n- Matrix is versioned and linked to stories"
+    },
+    {
+      "summary": "As a product manager, I want to create and launch A/B tests with multiple variations so that I can validate UX hypotheses with empirical data",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 8,
+      "labels": ["ab-testing", "testing", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 Experimentation & Testing; FR1 (Must); user flow 5.1.\n\nDefine hypothesis, target metrics, select audience segment, configure variations (visual/code editor), launch, monitor, review SmartStats results.\n\nAcceptance Criteria:\n- User can define hypothesis and target metric\n- User can create 2+ variations for a campaign\n- Campaign can be launched and monitored\n- Results conclude a winner via SmartStats\n- Cross-device/cross-browser QA available\n- Campaign scheduling supported"
+    },
+    {
+      "summary": "As a product manager, I want split URL testing so that I can compare experiences hosted on different URLs",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 5,
+      "labels": ["split-url", "testing", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 (Split URL Testing), FR1; HLR login context.\n\nAcceptance Criteria:\n- User can define multiple URL variants for a split test\n- Traffic is split deterministically across URLs\n- Results reported per variant\n- Split URL campaigns support goals and SmartStats"
+    },
+    {
+      "summary": "As a product manager, I want multivariate testing (MVT) so that I can test combinations of multiple element changes",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "Medium",
+      "points": 8,
+      "labels": ["mvt", "testing", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 (Multivariate Testing), FR1.\n\nAcceptance Criteria:\n- User can define multiple independent variables/sections\n- System generates combination matrix automatically\n- Results isolate contribution of each element\n- MVT campaigns integrate with goals and reporting"
+    },
+    {
+      "summary": "As an analyst, I want the SmartStats Bayesian engine so that test results are statistically accurate and actionable",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 8,
+      "labels": ["smartstats", "statistics", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 (Bayesian-powered Intelligent stats engine - SmartStats); FR2 (Must); risks: data accuracy.\n\nAcceptance Criteria:\n- Results computed with Bayesian methodology\n- Confidence/probability metrics shown per variation\n- Results remain valid under low sample sizes\n- Cross-tool validation integrations supported\n- Report explains actionable conclusion (winner / keep running / inconclusive)"
+    },
+    {
+      "summary": "As an experiment creator, I want visual and code editors so that I can set up experiments as WYSIWYG or at developer level",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 8,
+      "labels": ["editor", "visual-editor", "code-editor", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 (version previews), FR3 (Must) - Visual & Code Editor; risk mitigation SDKs + docs + templates.\n\nAcceptance Criteria:\n- Visual (WYSIWYG) editor supports element editing without code\n- Code editor supports custom JS/CSS for developer-level changes\n- Changes preview before publish\n- Editor supports versioning/revert\n- Editing workflows respond within 2 seconds (PRD NFR)"
+    },
+    {
+      "summary": "As a growth manager, I want custom goals and metric configuration so that experiments align with business KPIs",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 5,
+      "labels": ["goals", "metrics", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 (Custom goals and metric configurations aligned with business KPIs); user flow 5.1 step 1.\n\nAcceptance Criteria:\n- User can create custom goals (sign-ups, purchases, lead forms)\n- Goals attach to campaigns\n- Goal conversion is tracked and reported\n- KPI alignment visible in reporting"
+    },
+    {
+      "summary": "As a marketer, I want audience targeting based on behaviors and attributes so that I can show experiments to the right segments",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 5,
+      "labels": ["targeting", "audience", "segmentation", "prd", "sprint2"],
+      "description": "Source: PRD 4.1 (Audience targeting based on behaviors and attributes), FR5 (High).\n\nAcceptance Criteria:\n- Targeting by behavior (device, OS, traffic, visitor type) supported\n- Targeting by attributes supported\n- Saved segments reusable across campaigns\n- Targeting rules applied at runtime correctly"
+    },
+    {
+      "summary": "As a product manager, I want real-time reporting and dashboards so that I can monitor experiment analytics up to date",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "points": 8,
+      "labels": ["reporting", "dashboard", "prd", "sprint2"],
+      "description": "Source: PRD FR6 (Must) - Real-time Reporting & Dashboards; success metrics (conversion %, velocity).\n\nAcceptance Criteria:\n- Dashboard shows live experiment status\n- Conversion rate metrics displayed per variation\n- Reports exportable (CSV/summary)\n- Data refresh in near-real-time\n- Reporting covers test outcomes and KPIs"
+    },
+    {
+      "summary": "As an analyst, I want heatmaps (click, scroll, focus) so that I can visualize user actions on key pages",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "High",
+      "points": 8,
+      "labels": ["heatmaps", "insights", "prd", "sprint3"],
+      "description": "Source: PRD 4.2 Behavioral Insights (Heatmaps: click, scroll, focus), FR4 (Must).\n\nAcceptance Criteria:\n- Click heatmaps generated per page\n- Scroll heatmaps generated per page\n- Focus heatmaps generated per page\n- Heatmap data correlates with device/segment filters\n- Data visible in Insights dashboard"
+    },
+    {
+      "summary": "As an analyst, I want session recordings so that I can observe real user behavior and discover pain points",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "High",
+      "points": 8,
+      "labels": ["recordings", "insights", "prd", "sprint3"],
+      "description": "Source: PRD 4.2 (Session recordings), FR4 (Must); use case discover pain points.\n\nAcceptance Criteria:\n- Session recordings captured for configured pages\n- Recordings playable in dashboard\n- Recordings filterable by segment/date\n- Struggle behavior (rage clicks, etc.) surfaced if enabled\n- Recordings retention policy respected (testingRetentionDays 90)"
+    },
+    {
+      "summary": "As an analyst, I want funnel analytics so that I can identify drop-off points in user journeys",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "High",
+      "points": 5,
+      "labels": ["funnel", "analytics", "prd", "sprint3"],
+      "description": "Source: PRD 4.2 (Funnel analytics to identify drop-off points); use case 5.2.\n\nAcceptance Criteria:\n- User can define funnel steps\n- Drop-off % shown per step\n- Funnel correlates with experiment outcomes\n- Insights dashboard supports funnel visualization"
+    },
+    {
+      "summary": "As a UX researcher, I want on-page surveys and feedback so that I can collect qualitative input from visitors",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "Medium",
+      "points": 3,
+      "labels": ["surveys", "feedback", "insights", "sprint3"],
+      "description": "Source: PRD 4.2 (On-page surveys & feedback).\n\nAcceptance Criteria:\n- Survey templates creatable\n- Surveys embeddable on-page\n- Responses aggregated in Insights\n- Survey targeting by segment supported"
+    },
+    {
+      "summary": "As a growth team member, I want the personalization engine so that I can deliver tailored experiences to segments in real time",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "High",
+      "points": 8,
+      "labels": ["personalization", "segments", "prd", "sprint3"],
+      "description": "Source: PRD 4.3 Personalization, FR7 (High).\n\nSegment by geography, behavior, demographics; deliver customized content in real-time.\n\nAcceptance Criteria:\n- Segmentation by geography, behavior, demographics supported\n- Personalized content delivered in real-time\n- Engagement of personalized campaigns tracked\n- Personalization integrates with testing and reporting"
+    },
+    {
+      "summary": "As an engineer, I want integration connectors (Shopify, Salesforce, Segment, Snowflake) so that VWO data syncs with external platforms",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "High",
+      "points": 8,
+      "labels": ["integrations", "connectors", "prd", "sprint3"],
+      "description": "Source: PRD 4.5 Integrations, FR8 (High).\n\nShopify, Salesforce, Segment, Snowflake, WordPress, Drupal, CDPs and analytics systems, tracking & reporting tools.\n\nAcceptance Criteria:\n- Shopify connector works\n- Salesforce connector works\n- Segment connector works\n- Snowflake connector works\n- Connector auth/setup flows documented\n- Data sync verified bidirectionally where applicable"
+    },
+    {
+      "summary": "As a user, I want editing workflows to respond within 2 seconds so that the platform feels responsive",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "High",
+      "points": 5,
+      "labels": ["performance", "nfr", "sprint4"],
+      "description": "Source: PRD section 7 Non-Functional (Performance: system responds within 2 seconds for editing workflows).\n\nAcceptance Criteria:\n- Editing workflows respond within 2 seconds (p95)\n- Performance measured under representative load\n- Slow endpoints identified and optimized\n- Performance budget enforced in CI"
+    },
+    {
+      "summary": "As an admin, I want 2FA, role-based access control, and activity logs so that the platform is secure",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "High",
+      "points": 8,
+      "labels": ["security", "2fa", "rbac", "nfr", "sprint4"],
+      "description": "Source: PRD section 7 Non-Functional (Security: 2FA, role-based access control, activity logs); login API flags (isTwoFactorAuthenticationEnabled, isSamlEnabled, twoFactorAuthenticationMethod).\n\nAcceptance Criteria:\n- 2FA enforcement configurable per account\n- Role-based access control applied (Owner/Admin ruleset from login policy)\n- Activity logs capture user actions\n- Logs retained and queryable\n- RBAC prevents unauthorized feature access"
+    },
+    {
+      "summary": "As a compliance officer, I want GDPR and CCPA compliance so that regional data policies are respected",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "High",
+      "points": 8,
+      "labels": ["compliance", "gdpr", "ccpa", "nfr", "sprint4"],
+      "description": "Source: PRD section 7 Non-Functional (Data Privacy: GDPR, CCPA, regional data policies); login response dataLocation (AS01).\n\nAcceptance Criteria:\n- GDPR compliance requirements met\n- CCPA compliance requirements met\n- Regional data residency (dataLocation) honored\n- Privacy policy/documentation updated\n- Data deletion/export requests supported"
+    },
+    {
+      "summary": "As a platform owner, I want 99.9% uptime SLA so that enterprise customers can rely on the platform",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "High",
+      "points": 5,
+      "labels": ["reliability", "sla", "nfr", "sprint4"],
+      "description": "Source: PRD section 7 Non-Functional (Reliability: 99.9% uptime SLA for enterprise customers).\n\nAcceptance Criteria:\n- Uptime SLA of 99.9% defined and measured\n- Monitoring and alerting in place\n- Incident response documented\n- High visitor volumes handled without performance loss (Scalability)"
+    },
+    {
+      "summary": "As a team member, I want collaboration and workflow management so that my team can plan and track optimization initiatives",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "Medium",
+      "points": 5,
+      "labels": ["collaboration", "workflow", "kanban", "sprint4"],
+      "description": "Source: PRD 4.4 Program & Workflow Management, FR9 (Medium).\n\nCentral planning interface, collaboration tools for distributed teams, Kanban-style workflows for experiment backlogs.\n\nAcceptance Criteria:\n- Central planning interface available\n- Collaboration tools support distributed teams\n- Kanban-style backlog workflow supported\n- Experiment backlog organized by status"
+    },
+    {
+      "summary": "As a QA engineer, I want cross-device/cross-browser QA and version previews so that experiments render correctly everywhere",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "Medium",
+      "points": 5,
+      "labels": ["qa", "cross-browser", "previews", "sprint4"],
+      "description": "Source: PRD 4.1 (version previews, cross-device/cross-browser QA); risk mitigation (SDKs + docs + templates).\n\nAcceptance Criteria:\n- Cross-device QA supported (desktop, mobile, tablet)\n- Cross-browser QA supported (Chrome, Safari, Firefox, Edge)\n- Version previews available before publish\n- QA checklist integrated into campaign workflow"
+    }
+  ]
+}

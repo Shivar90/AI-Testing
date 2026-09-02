@@ -1,0 +1,94 @@
+{
+  "bugs": [
+    {
+      "summary": "Login API returns 500 instead of 401 for invalid credentials",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "severity": "Critical",
+      "labels": ["login", "api", "bug", "enterprise-app"],
+      "description": "Source: App VWO Login API doc + HLR (Login invalid credentials path).\n\nPOST /login with a wrong password should return 401/error status, but the service returns HTTP 500 with a generic server error, hiding the auth failure.\n\nSteps to reproduce:\n- POST https://app.vwo.com/login with {\"username\": \"valid@user.com\", \"password\": \"wrong\"}\n- Observe HTTP 500 instead of 401\n\nExpected:\n- HTTP 401/4xx with a meaningful error message/code\n- No session/token issued on failure\n\nAcceptance Criteria:\n- Invalid credentials return 401 (not 500)\n- Error response contains a message/code\n- No proxyToken/playerToken issued on failure\n- Regression test added for the invalid-password path"
+    },
+    {
+      "summary": "Session cookie not honored on subsequent authenticated API requests",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "severity": "Major",
+      "labels": ["login", "session", "cookie", "bug", "enterprise-app"],
+      "description": "Source: App VWO Login API doc (session/token handling) + HLR verification dimension Cookie.\n\nAfter a successful login, the session cookie set by the login response is not sent on subsequent API calls, so the user appears logged out on the next request.\n\nSteps to reproduce:\n- Login successfully and capture Set-Cookie\n- Call an authenticated endpoint with the cookie\n- Endpoint returns 401/session expired\n\nExpected:\n- Session cookie persists and is honored across requests\n- Remember flag persists session when true\n\nAcceptance Criteria:\n- Cookie round-trip works for authenticated calls\n- Token/session state consistent after refresh\n- Test matrix (HLR Cookie dimension) covers this"
+    },
+    {
+      "summary": "proxyToken and playerToken missing from login success response",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "High",
+      "severity": "Major",
+      "labels": ["login", "token", "api", "bug", "enterprise-app"],
+      "description": "Source: App VWO Login API doc (Response - Validation: proxyToken, playerToken).\n\nThe login response contract requires proxyToken and playerToken on successful login, but the live response omits them, breaking clients that depend on the documented schema.\n\nSteps to reproduce:\n- POST /login with valid credentials\n- Inspect response JSON for proxyToken/playerToken\n- Fields are absent\n\nExpected:\n- Response matches documented JSON schema field-for-field\n- proxyToken and playerToken present on successful login\n\nAcceptance Criteria:\n- Response schema validated against documented contract\n- proxyToken and playerToken present\n- Schema regression test added"
+    },
+    {
+      "summary": "Duplicate registration email returns 200 instead of a conflict error",
+      "epic": "EA-1",
+      "sprint": 1,
+      "priority": "Medium",
+      "severity": "Major",
+      "labels": ["registration", "signup", "api", "bug", "enterprise-app"],
+      "description": "Source: HLR (Registration section, duplicate email case).\n\nRegistering with an already-registered email should return an error/conflict status, but the API returns 200 with a success body, allowing duplicate accounts.\n\nSteps to reproduce:\n- Register a new email (201/success)\n- Register the same email again\n- Observe 200 instead of a conflict/4xx error\n\nExpected:\n- Duplicate/registered email returns an error\n- No duplicate account created\n\nAcceptance Criteria:\n- Duplicate email rejected with meaningful status\n- No duplicate account record created\n- Regression test for duplicate email"
+    },
+    {
+      "summary": "A/B test variations not distributed evenly under high traffic",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "severity": "Major",
+      "labels": ["ab-testing", "testing", "bug", "enterprise-app"],
+      "description": "Source: PRD 4.1 Experimentation & Testing, FR1; traffic splitting for A/B campaigns.\n\nTraffic split across A/B variations is heavily skewed under load (e.g. 80/20 instead of 50/50), producing biased experiment results.\n\nSteps to reproduce:\n- Create an A/B campaign with 2 variations (50/50 split)\n- Drive high traffic through the experiment\n- Observe variation distribution diverges from configured split\n\nExpected:\n- Traffic split deterministically and evenly per configured weights\n- Results remain statistically valid\n\nAcceptance Criteria:\n- Distribution matches configured split within tolerance\n- SmartStats conclusion is trustworthy\n- Load test covers split accuracy"
+    },
+    {
+      "summary": "SmartStats confidence metric incorrect for small sample sizes",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "severity": "Critical",
+      "labels": ["smartstats", "statistics", "bug", "enterprise-app"],
+      "description": "Source: PRD 4.1 SmartStats Bayesian engine; FR2 (Must); risk: data accuracy.\n\nSmartStats reports high confidence (e.g. 99%) for variations with very small sample sizes, misleading users into declaring a winner prematurely.\n\nSteps to reproduce:\n- Run a campaign with low traffic (few conversions)\n- Open the SmartStats report\n- Observe overstated confidence/probability\n\nExpected:\n- Confidence metrics remain valid under low sample sizes\n- Report explains actionable conclusion (winner / keep running / inconclusive)\n\nAcceptance Criteria:\n- Small-sample guardrails in place\n- Confidence reflects uncertainty correctly\n- Cross-tool validation matches"
+    },
+    {
+      "summary": "Visual editor changes not reflected in live preview",
+      "epic": "EA-2",
+      "sprint": 2,
+      "priority": "High",
+      "severity": "Major",
+      "labels": ["editor", "visual-editor", "preview", "bug", "enterprise-app"],
+      "description": "Source: PRD 4.1 Visual & Code Editor, FR3; version previews.\n\nEdits made in the visual (WYSIWYG) editor do not appear in the live preview until a hard refresh, and sometimes not at all for CSS-only changes.\n\nSteps to reproduce:\n- Open an experiment in the visual editor\n- Change an element's styling\n- Open the preview\n- Change is missing until full page reload\n\nExpected:\n- Changes preview before publish\n- Editing workflows respond within 2 seconds (PRD NFR)\n\nAcceptance Criteria:\n- Editor changes render in preview immediately\n- Preview reflects CSS/JS changes\n- 2s editing workflow NFR maintained"
+    },
+    {
+      "summary": "Heatmaps fail to render for pages behind login",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "High",
+      "severity": "Major",
+      "labels": ["heatmaps", "insights", "bug", "enterprise-app"],
+      "description": "Source: PRD 4.2 Behavioral Insights (Heatmaps), FR4.\n\nClick/scroll heatmaps do not render for pages that require authentication (login-protected pages), showing an empty canvas.\n\nSteps to reproduce:\n- Configure heatmap on a login-protected page\n- View the heatmap in the Insights dashboard\n- Canvas is blank / no data\n\nExpected:\n- Heatmaps generated for configured pages regardless of auth\n- Data correlates with device/segment filters\n\nAcceptance Criteria:\n- Authenticated pages tracked and rendered\n- Data attribution to segments works\n- Regression test for auth-walled pages"
+    },
+    {
+      "summary": "Session recordings stop after 30 seconds on long pages",
+      "epic": "EA-3",
+      "sprint": 3,
+      "priority": "Medium",
+      "severity": "Major",
+      "labels": ["recordings", "insights", "bug", "enterprise-app"],
+      "description": "Source: PRD 4.2 Session recordings, FR4; retention policy (testingRetentionDays 90).\n\nSession recordings truncate at ~30 seconds on pages with heavy DOM, losing the rest of the user session and hiding pain points.\n\nSteps to reproduce:\n- Enable session recording on a long/scroll-heavy page\n- Let a user session run for 60+ seconds\n- Play back the recording\n- Playback ends at ~30s\n\nExpected:\n- Full session captured and playable\n- Recordings filterable by segment/date\n\nAcceptance Criteria:\n- Recording length covers full session\n- Playback reliable on heavy pages\n- Retention policy respected"
+    },
+    {
+      "summary": "Cross-browser QA: editor preview broken in Safari (layout shift)",
+      "epic": "EA-4",
+      "sprint": 4,
+      "priority": "Medium",
+      "severity": "Minor",
+      "labels": ["qa", "cross-browser", "previews", "bug", "enterprise-app"],
+      "description": "Source: PRD 4.1 cross-device/cross-browser QA; risk mitigation (SDKs + docs + templates).\n\nCampaign version previews render with a layout shift in Safari (desktop) that does not occur in Chrome/Firefox/Edge.\n\nSteps to reproduce:\n- Open a campaign version preview in Safari (desktop)\n- Compare with Chrome\n- Observe content shift / misalignment\n\nExpected:\n- Cross-browser QA supported (Chrome, Safari, Firefox, Edge)\n- Version previews render consistently\n\nAcceptance Criteria:\n- Safari preview matches other browsers\n- QA checklist integrated into campaign workflow\n- Regression test in browser matrix"
+    }
+  ]
+}

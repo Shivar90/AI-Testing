@@ -27,3 +27,6 @@ Thumbs.db
 .commandcode/
 .playwright-mcp/
 
+# Secrets
+.env
+

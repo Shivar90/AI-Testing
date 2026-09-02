@@ -1,0 +1,38 @@
+Objective
+
+In app.bw.com, we see there are two types of APIs which are present. First one is the login API. The second one is called the registration API or signup API.
+In the login API, the user will enter the email and password, which is a working password that they have. If it is valid, we will be able to log into the dashboard. If it is invalid, then we will get an error.
+
+
+Login
+
+URL
+Payload
+HTTP Method
+Status
+What to verify
+
+curl 'https://app.vwo.com/login' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'Referer: https://app.vwo.com/' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36' \
+  -H 'sec-ch-ua: "Google Chrome";v="137", "Chromium";v="137", "Not/A)Brand";v="24"' \
+  -H 'DNT: 1' \
+  -H 'Content-Type: application/json;charset=UTF-8' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  --data-raw $'{"username":"contact+aug@thetestingacademy.com","password":"TtxkgQ\u0021s$rJBk85","remember":false,"recaptcha_response_field":""}'
+
+
+Registration
+
+URL
+Payload
+HTTP Method
+Status
+What to verify
+Request body
+Response body
+Header
+Auth
+Cookie
+Token?
