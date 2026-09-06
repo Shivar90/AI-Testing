@@ -1,0 +1,1 @@
+Jira Production Bug → deterministic evidence collection → AI RCA → Google Sheet RCA template → XLSX export → audit store → optional Jira comment, with retry/error handling and human review.
