@@ -2,10 +2,11 @@
 
 Recreates projects, epics, stories, tasks, and bugs (with priority, points,
 labels, parent epic) and assigns issues to sprints by name. Idempotent: existing
-projects/issues are reused by key/summary, never duplicated. Fails loudly on
-any non-2xx (per LLM.md).
+projects/issues are reused by key/summary, never duplicated. Comments and
+downloaded attachments from the backup are re-added only to freshly created
+issues (reused issues are left untouched). Fails loudly on any non-2xx (per LLM.md).
 
-Usage: python restore_project.py [--in backup/jira_backup.json]
+Usage: python restore_project.py [--in backup/jira_backup.json] [--projects EA,SCRUM]
 """
 
 import argparse
@@ -19,6 +20,37 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
 DEFAULT_IN = SCRIPTS_DIR.parent / "backup" / "jira_backup.json"
 
 HIERARCHY = {"Epic": 0, "Story": 1, "Task": 1, "Bug": 1}
+
+
+def restore_extras(
+    client: JiraClient,
+    issue_key: str,
+    issue: dict,
+    attachments_root: Path | None,
+) -> None:
+    """Re-add captured comments and downloaded attachments to a fresh issue."""
+    for c in issue.get("comments") or []:
+        body = (c.get("body") or "").strip()
+        if not body:
+            continue
+        note = ""
+        if c.get("author") or c.get("created"):
+            note = f"\n\n_Originally by {c.get('author')} on {c.get('created')} (restored)._"
+        client.post_comment(issue_key, body + note)
+        print(f"    + comment restored on {issue_key}")
+    for a in issue.get("attachments") or []:
+        rel = a.get("path")
+        if not rel or not attachments_root:
+            if not a.get("downloadError"):
+                print(f"    WARNING: attachment '{a.get('filename')}' on {issue_key} has no "
+                      f"downloaded file in this backup; skipping.", file=sys.stderr)
+            continue
+        src = attachments_root / rel
+        if not src.is_file():
+            print(f"    WARNING: attachment file missing: {src}", file=sys.stderr)
+            continue
+        client.upload_attachment(issue_key, src, a.get("mimeType"))
+        print(f"    + attachment '{a.get('filename')}' restored on {issue_key}")
 
 
 def ensure_project(client: JiraClient, project: dict) -> str:
@@ -48,7 +80,9 @@ def existing_issues(client: JiraClient, project_key: str, issue_type: str) -> di
     return {i["fields"]["summary"].strip(): i["key"] for i in issues}
 
 
-def restore_project(client: JiraClient, project: dict) -> None:
+def restore_project(
+    client: JiraClient, project: dict, attachments_root: Path | None
+) -> None:
     """Restore one project's issues + sprint assignments."""
     key = ensure_project(client, project)
     issues = project.get("issues", [])
@@ -82,6 +116,7 @@ def restore_project(client: JiraClient, project: dict) -> None:
         )
         epic_keys[issue["key"]] = created.get("key")
         print(f"  Epic created: {created.get('key')}")
+        restore_extras(client, created.get("key"), issue, attachments_root)
 
     # 2. Stories / Tasks / Bugs
     existing_by_type = {
@@ -113,6 +148,7 @@ def restore_project(client: JiraClient, project: dict) -> None:
         created = client.create_issue(fields)
         created_children.append((created.get("key"), issue.get("sprint")))
         print(f"  {itype} created: {created.get('key')}")
+        restore_extras(client, created.get("key"), issue, attachments_root)
 
     # 3. Sprints: create missing + assign
     board = client.find_board(key)
@@ -136,6 +172,11 @@ def restore_project(client: JiraClient, project: dict) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Restore JIRA from backup JSON")
     parser.add_argument("--in", dest="in_path", default=str(DEFAULT_IN), help="Backup JSON path")
+    parser.add_argument(
+        "--projects",
+        default="",
+        help="Comma-separated project keys to restore (default: all in backup)",
+    )
     args = parser.parse_args()
 
     in_path = Path(args.in_path)
@@ -148,12 +189,24 @@ def main() -> None:
     me = client.handshake()
     print(f"Handshake OK: {me.get('displayName', '?')}")
 
-    for project in backup.get("projects", []):
-        print(f"\nRestoring project {project['key']}...")
-        restore_project(client, project)
+    # Attachment bytes are stored next to the backup file under ``attachments/``.
+    attachments_root = in_path.parent / "attachments"
 
-    total = sum(len(p.get("issues", [])) for p in backup.get("projects", []))
-    print(f"\nRestore complete. {len(backup.get('projects', []))} project(s), {total} issues in backup.")
+    projects = backup.get("projects", [])
+    if args.projects:
+        wanted = {k.strip().upper() for k in args.projects.split(",") if k.strip()}
+        projects = [p for p in projects if p["key"].upper() in wanted]
+        missing = wanted - {p["key"].upper() for p in projects}
+        if missing:
+            print(f"WARNING: project(s) not in backup: {', '.join(sorted(missing))}",
+                  file=sys.stderr)
+
+    for project in projects:
+        print(f"\nRestoring project {project['key']}...")
+        restore_project(client, project, attachments_root)
+
+    total = sum(len(p.get("issues", [])) for p in projects)
+    print(f"\nRestore complete. {len(projects)} project(s), {total} issues in backup.")
 
 
 if __name__ == "__main__":

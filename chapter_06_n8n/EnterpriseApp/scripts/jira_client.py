@@ -90,6 +90,13 @@ class JiraClient:
             return {}
         return resp.json()
 
+    def get_bytes(self, url: str) -> bytes:
+        """Download raw bytes from an authenticated JIRA URL (e.g. attachment)."""
+        resp = self.session.get(url, timeout=60)
+        if not resp.ok:
+            raise RuntimeError(f"JIRA GET {url} -> {resp.status_code}: {resp.text[:500]}")
+        return resp.content
+
     # ---- REST API v3 ----
     def handshake(self) -> dict:
         return self.request("GET", "/rest/api/3/myself")
@@ -134,6 +141,30 @@ class JiraClient:
         if isinstance(description, str):
             fields = {**fields, "description": self._to_adf(description)}
         return self.request("POST", "/rest/api/3/issue", json_body={"fields": fields})
+
+    def post_comment(self, issue_key: str, body_text: str) -> dict:
+        """Add a plain-text comment to an issue (converted to ADF)."""
+        payload = {"body": self._to_adf(body_text)}
+        return self.request("POST", f"/rest/api/3/issue/{issue_key}/comment", json_body=payload)
+
+    def upload_attachment(
+        self, issue_key: str, file_path: Path, mime_type: str | None = None
+    ) -> dict:
+        """Attach a local file to an issue (multipart upload)."""
+        url = f"{self.base_url}/rest/api/3/issue/{issue_key}/attachments"
+        headers = {"X-Atlassian-Token": "no-check"}
+        with open(file_path, "rb") as fh:
+            resp = self.session.post(
+                url,
+                files={"file": (file_path.name, fh, mime_type or "application/octet-stream")},
+                headers=headers,
+                timeout=120,
+            )
+        if not resp.ok:
+            raise RuntimeError(
+                f"JIRA POST attachment {issue_key} -> {resp.status_code}: {resp.text[:2000]}"
+            )
+        return resp.json()
 
     @staticmethod
     def _to_adf(text: str) -> dict:
