@@ -1,0 +1,6 @@
+{
+  "name": "rag-explorer",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" }
+}
