@@ -16,22 +16,24 @@ const embed = await pipeline('feature-extraction', MODEL, { dtype: 'q8' });
 const round = (v) => Math.round(v * 1e4) / 1e4;   // 4dp keeps the file small
 let total = 0;
 
-for (const cfg of src.configs) {
-  const texts = cfg.chunks.map((c) => c.text);
-  const out = await embed(texts, { pooling: 'mean', normalize: true });
-  const [n, dims] = out.dims;
-  const flat = Array.from(out.data);
-  cfg.dims = dims;
-  cfg.chunks.forEach((c, i) => {
-    c.vector = flat.slice(i * dims, (i + 1) * dims).map(round);
-  });
-  total += n;
-  console.log(`  ${cfg.chunk_size}w/${cfg.overlap} -> ${n} chunks x ${dims}d`);
+for (const entry of src.documents) {
+  for (const cfg of entry.configs) {
+    const texts = cfg.chunks.map((c) => c.text);
+    const out = await embed(texts, { pooling: 'mean', normalize: true });
+    const [n, dims] = out.dims;
+    const flat = Array.from(out.data);
+    cfg.dims = dims;
+    cfg.chunks.forEach((c, i) => {
+      c.vector = flat.slice(i * dims, (i + 1) * dims).map(round);
+    });
+    total += n;
+    console.log(`  ${entry.doc.filename} · ${cfg.chunk_size}w/${cfg.overlap} -> ${n} chunks x ${dims}d`);
+  }
 }
 
 src.embed_model = MODEL;
-src.dims = src.configs[0].dims;
+src.dims = src.documents[0].configs[0].dims;
 writeFileSync('public/index.json', JSON.stringify(src));
 
 const mb = (Buffer.byteLength(JSON.stringify(src)) / 1e6).toFixed(2);
-console.log(`wrote ui/public/index.json — ${total} vectors, ${mb} MB`);
+console.log(`wrote ui/public/index.json — ${total} vectors across ${src.documents.length} documents, ${mb} MB`);

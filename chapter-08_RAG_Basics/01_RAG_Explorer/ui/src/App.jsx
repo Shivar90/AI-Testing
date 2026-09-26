@@ -54,19 +54,21 @@ const SAMPLES = [
 ];
 
 /* ------------------------------------------------------------------ Ingest */
-function Ingest({ data, setData }) {
+function Ingest({ data, setData, docs }) {
   const [size, setSize] = useState(180);
   const [overlap, setOverlap] = useState(40);
+  const [docIndex, setDocIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
 
-  async function run() {
+  async function run(nextDoc = docIndex) {
     setBusy(true); setErr(null);
     try {
-      const d = await RUN.engine.ingest({ chunk_size: size, overlap }, RUN.onProgress);
+      const d = await RUN.engine.ingest({ chunk_size: size, overlap, docIndex: nextDoc }, RUN.onProgress);
       RUN.cfg = d._cfg || null;
       setData(d);
       if (d.config) { setSize(d.config.chunk_size); setOverlap(d.config.overlap); }
+      if (typeof d.docIndex === 'number') setDocIndex(d.docIndex);
     }
     catch (e) { setErr(e.message); }
     finally { setBusy(false); }
@@ -76,9 +78,9 @@ function Ingest({ data, setData }) {
 
   return (
     <>
-      <h2>1 · Ingest the PDF</h2>
+      <h2>1 · Ingest a document</h2>
       <p className="sub">
-        Five stages turn a PDF into something searchable. Change the chunk settings and
+        Five stages turn a document into something searchable. Change the chunk settings and
         re-run to watch the trade-off move.
       </p>
 
@@ -98,6 +100,19 @@ function Ingest({ data, setData }) {
       </div>
 
       <div className="card" style={{ marginTop: 14 }}>
+        {docs && docs.length > 1 && (
+          <div style={{ marginBottom: 14 }}>
+            <label className="fld">Document</label>
+            <select value={docIndex} disabled={busy}
+              onChange={(e) => { const v = +e.target.value; setDocIndex(v); run(v); }}>
+              {docs.map((doc) => (
+                <option key={doc.index} value={doc.index}>
+                  {doc.filename} · {doc.kind} · {doc.words.toLocaleString()} words
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="grid g2">
           <div>
             <label className="fld">Chunk size: <b>{size}</b> words</label>
@@ -115,8 +130,8 @@ function Ingest({ data, setData }) {
             Six chunk configurations were pre-computed, so the slider snaps to the nearest one.
           </p>
         )}
-        <button className="go" style={{ marginTop: 13 }} onClick={run} disabled={busy}>
-          {busy ? <><span className="spin" /> Ingesting…</> : data ? 'Re-ingest' : 'Ingest PDF'}
+        <button className="go" style={{ marginTop: 13 }} onClick={() => run()} disabled={busy}>
+          {busy ? <><span className="spin" /> Ingesting…</> : data ? 'Re-ingest' : 'Ingest document'}
         </button>
         {err && <div className="err" style={{ marginTop: 11 }}>{err}</div>}
       </div>
@@ -152,7 +167,7 @@ function Ingest({ data, setData }) {
             </div>
           </div>
 
-          <h2>{data.chunk_count} chunks</h2>
+          <h2>{data.chunk_count} chunks · {d.filename}</h2>
           <p className="sub">
             Each chunk is a {size}-word window that slides forward {data.config.step} words,
             so neighbours share {overlap} words. Each carries its own 768-number vector.
@@ -333,6 +348,7 @@ export default function App() {
   const [data, setData] = useState(null);
   const [mode, setMode] = useState(null);
   const [dl, setDl] = useState(null);
+  const [docs, setDocs] = useState(null);
 
   useEffect(() => {
     RUN.onProgress = (pct) => setDl(pct >= 100 ? null : pct);
@@ -341,6 +357,9 @@ export default function App() {
       RUN.mode = m;
       setMode(m);
       setHealth(h);
+      // Only the static build ships a browsable index; the live path reads data/ server side.
+      const pending = RUN.engine.documents?.();
+      if (pending) pending.then(setDocs).catch(() => {});
     });
   }, []);
 
@@ -388,7 +407,7 @@ export default function App() {
             Downloading the embedding model… {dl}%
           </div>
         )}
-        {tab === 'ingest' && <Ingest data={data} setData={setData} />}
+        {tab === 'ingest' && <Ingest data={data} setData={setData} docs={docs} />}
         {tab === 'search' && <Search ready={!!data} />}
         {tab === 'chat' && <Chat ready={!!data} />}
       </div>

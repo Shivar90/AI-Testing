@@ -6,8 +6,8 @@
  *
  *  static - the hosted build on Vercel, where there is no Ollama and no Python. Chunk
  *           vectors were pre-computed at build time and the query is embedded in the
- *           browser with MiniLM at 384 dims. Cosine similarity over 79 vectors is
- *           microseconds of JavaScript, so no vector database is needed at this size.
+ *           browser with MiniLM at 384 dims. Cosine similarity over a few hundred
+ *           vectors is microseconds of JavaScript, so no vector database is needed.
  *
  * Everything the UI renders (chunks, vectors, distances, scores) is genuinely computed
  * in both modes. Only the model and where it runs differ.
@@ -79,19 +79,34 @@ const dot = (a, b) => {
   return s;
 };
 
-function pickConfig(index, size) {
-  return index.configs.reduce((best, c) =>
+function pickConfig(configs, size) {
+  return configs.reduce((best, c) =>
     Math.abs(c.chunk_size - size) < Math.abs(best.chunk_size - size) ? c : best
   );
 }
 
 export const staticEngine = {
-  async ingest({ chunk_size }, onProgress) {
+  /** Every document baked into the index, so the UI can offer a picker. */
+  async documents() {
     const index = await loadIndex();
-    const cfg = pickConfig(index, chunk_size);
+    return index.documents.map((d, i) => ({
+      index: i,
+      filename: d.doc.filename,
+      kind: d.doc.kind,
+      words: d.doc.words,
+    }));
+  },
+
+  async ingest({ chunk_size, docIndex = 0 }, onProgress) {
+    const index = await loadIndex();
+    const at = Math.min(Math.max(docIndex | 0, 0), index.documents.length - 1);
+    const entry = index.documents[at];
+    const cfg = pickConfig(entry.configs, chunk_size);
     const t0 = performance.now();
     return {
-      doc: index.doc,
+      doc: entry.doc,
+      docIndex: at,
+      documents: index.documents.map((d, i) => ({ index: i, filename: d.doc.filename, kind: d.doc.kind })),
       config: { chunk_size: cfg.chunk_size, overlap: cfg.overlap, step: cfg.step },
       chunk_count: cfg.chunks.length,
       vector_dims: cfg.dims,
